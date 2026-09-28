@@ -2,7 +2,7 @@
 
 A Chrome extension that puts a gate in front of the sites you reach for on autopilot (Instagram, YouTube, LinkedIn, X, Reddit, or anything you add).
 
-During the hours you choose, those sites show a block page with your goals for the day instead. You can still get through, but only with some effort:
+During the hours you choose, those sites show a block page with your goal instead. You can still get through, but only with some effort:
 
 - **Ask a friend** for an unlock code (optional, needs a 5-minute setup).
 - **Say out loud what you did today** in the evening, and everything unlocks until midnight.
@@ -40,8 +40,8 @@ Use an up-to-date desktop Chrome; the voice review relies on Chrome's recent on-
 
 Right after installing, settings stay unlocked for **30 minutes** even if you're inside a block window. Use that time to:
 
+- **write your goal** (required, and you can change it any time later),
 - adjust the sites and the schedule,
-- write your goals,
 - optionally set up an accountability partner (see below).
 
 After that, the lock rules apply.
@@ -55,8 +55,8 @@ After that, the lock rules apply.
 ## How it works
 
 - **Block windows** are the times a site is gated, e.g. Mon–Fri 9:00–18:00. Outside them everything works normally and you can change any setting.
-- **During a block window,** a blocked site redirects to the block page. It shows the site, your goals, how long until the window ends, and the ways to unlock.
-- **Locked settings.** Inside a window, anything that would *loosen* the gate needs an unlock first. That includes turning a site off, removing it, switching it to "No block", editing schedules or requirements, turning grayscale off, or pausing FocusGate. Anything that *tightens* the gate (adding a site, turning one on, turning grayscale on) always works.
+- **During a block window,** a blocked site redirects to the block page. It shows the site, your goal, how long until the window ends, and the ways to unlock.
+- **Locked settings.** Inside a window, anything that would *loosen* the gate needs an unlock first (your goal is the exception and can always be edited). That includes turning a site off, removing it, switching it to "No block", editing schedules or requirements, turning grayscale off, or pausing FocusGate. Anything that *tightens* the gate (adding a site, turning one on, turning grayscale on) always works.
 - **Unlocks:**
   - **Partner code:** unlocks one site (or your settings) for 15 minutes by default.
   - **Day review:** unlocks everything until midnight.
@@ -92,9 +92,12 @@ When blocking is active for every site set to *Global*.
 - **Per day:** each weekday can have any number of windows (**+ window**, **×** to remove). A window whose end time is at or before its start runs past midnight into the next day, shown as "(+1 day)". For example, Fri 22:00–02:00 blocks until Saturday 02:00.
 - Times follow your computer's current timezone, including daylight-saving changes and travel.
 
-### Goals for today
+### Your goal
 
-Free text shown on every block page and on the day-review page. It's there to remind you what you're protecting your time for.
+The box at the top of the settings page. Write a goal for **today** ("Finish the Q3 report, reply to Sam") or one for **all time** ("Build things, don't scroll"). It appears on every block page and on the day review, as a reminder of what you're protecting your time for.
+
+- **Always editable:** you can change your goal at any time, even during a block window, because changing it never loosens the gate. The block page has an **Edit** link straight to it.
+- **Required:** it can't be empty, and the other settings can't be saved until a goal is set.
 
 ### Unlocks
 

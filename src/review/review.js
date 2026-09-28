@@ -294,7 +294,7 @@ $('#continue').onclick = (e) => {
 (async () => {
   const data = await send('getStatus');
   settings = data.settings;
-  $('#goals').textContent = settings.goals.trim() || 'No goals set.';
+  $('#goals').textContent = settings.goals.trim() || 'No goal set.';
   renderAvailability();
   setInterval(renderAvailability, 30_000);
   render();

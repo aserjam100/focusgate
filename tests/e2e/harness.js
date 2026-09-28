@@ -63,6 +63,9 @@ export async function launch({ headless = process.env.HEADED ? false : true, use
     if (settings) break;
     await new Promise((r) => setTimeout(r, 100));
   }
+  // Other settings can't be saved without a goal.
+  const { settings } = await api.storage(['settings']);
+  if (!settings.goals) await api.send('saveGoals', { goals: 'Test goal' });
   return api;
 }
 
@@ -100,6 +103,20 @@ export async function fakeEmailBackend() {
 }
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Wait until the page's URL matches. Unlike page.waitForURL this doesn't
+ * follow one navigation, so it tolerates the extension's redundant redirect
+ * layers aborting each other's in-flight navigations.
+ */
+export async function waitForUrl(page, re, timeout = 10_000) {
+  const t0 = Date.now();
+  while (Date.now() - t0 < timeout) {
+    if (re.test(page.url())) return page.url();
+    await sleep(50);
+  }
+  throw new Error(`URL never matched ${re}; last: ${page.url()}`);
+}
 
 export async function waitFor(fn, { timeout = 10_000, interval = 200 } = {}) {
   const t0 = Date.now();

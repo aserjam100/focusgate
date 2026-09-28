@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test 'tests/unit/*.test.js'",
-    "test:e2e": "node --test --test-concurrency=1 'tests/e2e/*.test.js'",
+    "test:e2e": "node --test --test-concurrency=1 --test-timeout=120000 'tests/e2e/*.test.js'",
     "zip": "rm -f focusgate.zip && zip -r focusgate.zip manifest.json src -x '*.DS_Store'"
   },
   "devDependencies": {

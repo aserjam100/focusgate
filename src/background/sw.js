@@ -19,6 +19,8 @@ const CONTENT_SCRIPT_ID = 'fg-sites';
 const CONTENT_FILES = ['src/content/core.js'];
 const MAX_CODE_ATTEMPTS = 5;
 const SETUP_GRACE_MINUTES = 30;
+const MAX_GOALS_LENGTH = 2000;
+const GOAL_REQUIRED = 'Add a goal first: something for today, or a goal for all time.';
 const EXT_ORIGIN = chrome.runtime.getURL('').replace(/\/$/, '');
 
 // ---------------------------------------------------------------------------
@@ -182,6 +184,9 @@ async function redirectOpenTabs(status) {
   const tabs = await chrome.tabs.query({ url: blocked.flatMap((s) => matchPatterns(s.domain)) });
   const domains = blocked.map((s) => s.domain);
   for (const tab of tabs) {
+    // Already on its way to an extension page (the redirect rule or the
+    // content script got there first): a second redirect would only abort it.
+    if (tab.pendingUrl?.startsWith(EXT_ORIGIN)) continue;
     let host;
     try {
       host = new URL(tab.url).hostname;
@@ -229,7 +234,6 @@ function requireSite(status, id) {
 const SITE_FIELDS = ['mode', 'grayscale', 'scheduleMode', 'schedule', 'enabled'];
 const GLOBAL_FIELDS = {
   globalSchedule: 'object',
-  goals: 'string',
   unlockMinutes: 'number',
   review: 'object',
   partner: 'object',
@@ -311,9 +315,22 @@ const handlers = {
     });
   },
 
+  // Goals only remind you what you're protecting your time for, so changing
+  // them never loosens the gate: allowed at any time, but never empty.
+  saveGoals({ goals }) {
+    return mutate(({ settings }) => {
+      goals = String(goals ?? '').trim();
+      if (!goals) throw new GateError(GOAL_REQUIRED, 'NO_GOAL');
+      if (goals.length > MAX_GOALS_LENGTH) throw new GateError(`Keep goals under ${MAX_GOALS_LENGTH} characters.`);
+      settings.goals = goals;
+      return { _why: 'saveGoals' };
+    });
+  },
+
   saveSettings({ patch }) {
     return mutate(({ settings, status }) => {
       requireGlobal(status);
+      if (!settings.goals.trim()) throw new GateError(GOAL_REQUIRED, 'NO_GOAL');
       for (const [k, type] of Object.entries(GLOBAL_FIELDS)) {
         if (!(k in patch)) continue;
         if (typeof patch[k] !== type) throw new GateError(`Bad value for ${k}`);

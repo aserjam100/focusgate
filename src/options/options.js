@@ -61,6 +61,44 @@ function readForm() {
 
 form.addEventListener('input', () => (formDirty = true));
 
+// ---- Goals (always editable, never empty) -----------------------------------
+
+const NO_GOAL_MSG = 'No goal yet. Add one to unlock the rest of the settings.';
+const goalsInput = $('#goals-input');
+let goalsDirty = false;
+goalsInput.addEventListener('input', () => (goalsDirty = true));
+
+function fillGoals(settings) {
+  if (goalsDirty) return;
+  goalsInput.value = settings.goals;
+  const missing = !settings.goals.trim();
+  $('#goals-form').classList.toggle('needs-goal', missing);
+  if (missing) {
+    $('#goals-msg').textContent = NO_GOAL_MSG;
+    $('#goals-msg').className = 'small error-text';
+  } else if ($('#goals-msg').textContent === NO_GOAL_MSG) {
+    // Only clear our own warning; leave "Saved at …" alone.
+    $('#goals-msg').textContent = '';
+    $('#goals-msg').className = 'small muted';
+  }
+}
+
+$('#goals-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  try {
+    await send('saveGoals', { goals: goalsInput.value });
+    goalsDirty = false;
+    data = await send('getStatus');
+    fillGoals(data.settings);
+    $('#goals-msg').className = 'small muted';
+    $('#goals-msg').textContent = `Saved at ${new Date().toLocaleTimeString()}`;
+  } catch (err) {
+    $('#goals-msg').className = 'small error-text';
+    $('#goals-msg').textContent = err.message;
+    goalsInput.focus();
+  }
+});
+
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
   $('#save').disabled = true;
@@ -74,6 +112,7 @@ form.addEventListener('submit', async (e) => {
     renderLock();
   } catch (err) {
     showMessage(err.message);
+    if (err.code === 'NO_GOAL') goalsInput.focus();
   } finally {
     $('#save').disabled = false;
   }
@@ -147,7 +186,7 @@ function renderLock() {
   const { status } = data;
   const locked = status.settingsLocked;
   $('#lock-banner').classList.toggle('hidden', !locked);
-  if (locked) $('#lock-text').textContent = 'A block window is active. Adding sites and tightening still work.';
+  if (locked) $('#lock-text').textContent = 'A block window is active. Your goal, adding sites and tightening changes still work.';
   $('#save').disabled = locked;
   let txt = '';
   if (status.settingsUnlockedUntil) txt = `Settings unlocked for ${formatDuration(status.settingsUnlockedUntil - Date.now())}.`;
@@ -159,6 +198,7 @@ async function refresh() {
   data = await send('getStatus');
   renderSites();
   renderLock();
+  fillGoals(data.settings);
   if (!formDirty && !form.contains(document.activeElement)) fillForm(data.settings);
 }
 
@@ -177,6 +217,8 @@ chrome.storage.onChanged.addListener((changes) => {
 (async () => {
   data = await send('getStatus');
   fillForm(data.settings);
+  fillGoals(data.settings);
   renderSites();
   renderLock();
+  if (location.hash === '#goals' || !data.settings.goals.trim()) goalsInput.focus();
 })();

@@ -61,7 +61,7 @@ function render() {
         : `${siteDomain} isn't blocked right now.`;
   }
 
-  $('#goals').textContent = settings.goals.trim() || 'No goals set. Add them in Settings.';
+  $('#goals').textContent = settings.goals.trim() || 'No goal set yet. Click Edit to add one.';
   $('#goals').classList.toggle('muted', !settings.goals.trim());
 
   // Partner

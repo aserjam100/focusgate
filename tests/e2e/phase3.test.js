@@ -1,6 +1,6 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { launch, scheduleCoveringNow, fakeEmailBackend } from './harness.js';
+import { launch, scheduleCoveringNow, fakeEmailBackend, waitForUrl } from './harness.js';
 
 let fg, backend;
 before(async () => {
@@ -22,7 +22,7 @@ after(async () => {
 test('block page: ask partner -> email carries code, site and reason -> entering the code unlocks the site', async () => {
   const page = await fg.context.newPage();
   await page.goto('https://www.reddit.com/r/rust').catch(() => {});
-  await page.waitForURL(/block\.html/);
+  await waitForUrl(page, /block\.html/);
   await page.waitForSelector('#partner-request:not(.hidden)');
   assert.match(await page.textContent('#partner-left'), /3 of 3 left/);
 

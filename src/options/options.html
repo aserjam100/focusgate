@@ -23,6 +23,17 @@
     </div>
     <div id="message" class="msg"></div>
 
+    <form id="goals-form" class="card stack">
+      <h2 id="goals">Your goal</h2>
+      <p class="muted small">What are you protecting your time for? Write a goal for <b>today</b> ("Finish the Q3 report, reply to Sam") or one for <b>all time</b> ("Build things, don't scroll"). It's shown every time a site is blocked and on the day review. You can change it any time, even during a block window, but it can't be empty, and other settings can't be saved until it's set.</p>
+      <textarea id="goals-input" rows="3" maxlength="2000" placeholder="e.g. Today: finish the Q3 report.  Or, for every day: build things, don't scroll."></textarea>
+      <div class="row">
+        <span id="goals-msg" class="small muted"></span>
+        <span class="spacer"></span>
+        <button type="submit" class="primary">Save goal</button>
+      </div>
+    </form>
+
     <section class="card stack">
       <h2>Sites</h2>
       <p class="muted small">Each site covers its subdomains. <b>Full block</b> redirects to the block page. <b>No block</b> only applies grayscale (if on) and tracks time. Tightening changes (enabling, full block, grayscale on) always work; loosening ones need an unlock during a block window.</p>
@@ -40,12 +51,6 @@
         <div id="global-schedule"></div>
       </section>
 
-      <section class="card stack">
-        <h2>Goals for today</h2>
-        <label class="field"><span>Shown on the block page and on the day review page.</span>
-          <textarea name="goals" rows="4" placeholder="e.g. Finish the API migration PR. Write the Q3 planning doc."></textarea>
-        </label>
-      </section>
 
       <section class="card stack">
         <h2>Unlocks</h2>

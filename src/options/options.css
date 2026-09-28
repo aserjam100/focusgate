@@ -4,6 +4,8 @@ header h1 { margin: 0; }
 .banner { border-color: var(--warn); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
 .narrow { max-width: 260px; }
+#goals-form.needs-goal { border-color: var(--warn); }
+.error-text { color: var(--danger); }
 button.link { border: none; background: none; color: var(--accent); padding: 2px 4px; }
 
 table.sites { width: 100%; border-collapse: collapse; }

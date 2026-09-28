@@ -3,7 +3,7 @@
 // service worker) until the popup was opened.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { launch, scheduleCoveringNow, EMPTY_SCHEDULE, waitFor } from './harness.js';
+import { launch, scheduleCoveringNow, EMPTY_SCHEDULE, waitFor, waitForUrl } from './harness.js';
 import { startPwaSite, addRawSite } from './pwa-site.js';
 
 let fg, site;
@@ -37,11 +37,12 @@ test('a navigation answered by the site’s service worker is still blocked', as
 
   await block();
   assert.ok((await fg.rules()).some((r) => r.condition.requestDomains[0] === 'localhost'));
-  const hitsBefore = site.hits.length;
+  // The site's service worker answers from cache (or, under load, fetches
+  // /home itself). Either way no main_frame request reaches DNR, so only the
+  // backup layers can catch it. Without them this page stays on /home.
   const page = await fg.context.newPage();
   await page.goto(site.origin + '/home').catch(() => {});
-  await page.waitForURL(/block\.html\?site=localhost&url=http:\/\/localhost:\d+\/home$/, { timeout: 5000 });
-  assert.ok(!site.hits.slice(hitsBefore).includes('/home'), 'page came from the SW cache, not the network');
+  await waitForUrl(page, /block\.html\?site=localhost&url=http:\/\/localhost:\d+\/home$/);
   await page.close();
   await unblock();
 });

@@ -1,6 +1,6 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { launch, scheduleCoveringNow, EMPTY_SCHEDULE, waitFor, sleep } from './harness.js';
+import { launch, scheduleCoveringNow, EMPTY_SCHEDULE, waitFor, sleep, waitForUrl } from './harness.js';
 
 let fg;
 before(async () => {
@@ -25,7 +25,9 @@ test('install seeds default sites, weekday schedule, setup grace and content-scr
 });
 
 test('outside a window everything is free; entering a window adds one DNR rule per site', async () => {
-  let res = await fg.send('saveSettings', { patch: { globalSchedule: EMPTY_SCHEDULE, goals: 'Ship the parser rewrite' } });
+  let res = await fg.send('saveGoals', { goals: 'Ship the parser rewrite' });
+  assert.equal(res.error, undefined);
+  res = await fg.send('saveSettings', { patch: { globalSchedule: EMPTY_SCHEDULE } });
   assert.equal(res.error, undefined);
   assert.equal((await fg.rules()).length, 0);
   // Toggling off/on outside a window is free.
@@ -53,7 +55,7 @@ test('blocked navigation (incl. subdomains) redirects to the block page with sit
     ['https://x.com/home', 'x.com'],
   ]) {
     await page.goto(url).catch(() => {});
-    await page.waitForURL(/block\.html/);
+    await waitForUrl(page, /block\.html/);
     const u = page.url();
     assert.ok(u.startsWith(`${fg.base}/src/block/block.html?site=${site}&url=`), u);
     await page.waitForSelector('#title');
@@ -65,7 +67,7 @@ test('blocked navigation (incl. subdomains) redirects to the block page with sit
   }
   // The original URL (with query and fragment) is recoverable.
   await page.goto('https://old.reddit.com/r/programming/?sort=top').catch(() => {});
-  await page.waitForURL(/block\.html/);
+  await waitForUrl(page, /block\.html/);
   const orig = await page.evaluate(() => location.href.slice(location.href.indexOf('&url=') + 5));
   assert.equal(orig, 'https://old.reddit.com/r/programming/?sort=top');
   await page.close();
@@ -134,7 +136,7 @@ test('tabs already open on a site are sent to the block page when the block star
   await page.goto('https://www.reddit.com/r/all');
   assert.equal(await page.textContent('h1'), 'fake reddit');
   await fg.setState({ unlocks: {} });
-  await page.waitForURL(/block\.html\?site=reddit\.com&url=https:\/\/www\.reddit\.com\/r\/all/);
+  await waitForUrl(page, /block\.html\?site=reddit\.com&url=https:\/\/www\.reddit\.com\/r\/all/);
   await page.close();
   await fg.context.unroute('https://www.reddit.com/**');
 });

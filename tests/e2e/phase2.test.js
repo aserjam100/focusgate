@@ -5,10 +5,10 @@ import { launch, scheduleCoveringNow, waitFor } from './harness.js';
 let fg;
 before(async () => {
   fg = await launch();
+  await fg.send('saveGoals', { goals: 'Finish the parser rewrite' });
   await fg.send('saveSettings', {
     patch: {
       globalSchedule: scheduleCoveringNow(),
-      goals: 'Finish the parser rewrite',
       review: { minSeconds: 2, minWords: 12, availableAfter: '00:00' },
     },
   });
