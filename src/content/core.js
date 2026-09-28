@@ -1,4 +1,6 @@
 // FocusGate content script (runs at document_start on every configured site).
+//   - backup redirect to the block page (for navigations DNR can't see:
+//     service-worker-served pages and back/forward-cache restores)
 //   - grayscale during block windows
 //   - time-on-site heartbeat for stats
 // Driven by the `runtime` object the service worker writes to
@@ -18,6 +20,7 @@
   const STYLE_ID = 'fg-grayscale';
   const host = location.hostname.toLowerCase();
   let mine = null; // this domain's entry in runtime.byDomain
+  let mineDomain = null;
 
   const alive = () => {
     try {
@@ -53,6 +56,13 @@
     chrome.runtime.sendMessage({ type: 'heartbeat', seconds: HEARTBEAT_SECONDS }).catch(() => {});
   }, HEARTBEAT_SECONDS * 1000);
 
+  function redirectIfBlocked() {
+    if (!mine?.blocked || !alive()) return false;
+    const block = chrome.runtime.getURL('src/block/block.html');
+    location.replace(`${block}?site=${encodeURIComponent(mineDomain)}&url=${location.href}`);
+    return true;
+  }
+
   function setRuntime(rt) {
     const byDomain = rt?.byDomain || {};
     // Most specific configured domain for this host.
@@ -61,6 +71,8 @@
       if ((host === d || host.endsWith('.' + d)) && (!best || d.length > best.length)) best = d;
     }
     mine = best ? byDomain[best] : null;
+    mineDomain = best;
+    if (redirectIfBlocked()) return;
     applyGrayscale();
   }
 
@@ -76,9 +88,16 @@
     } catch {
       /* context invalidated */
     }
+    window.removeEventListener('pageshow', onPageShow);
     document.getElementById(STYLE_ID)?.remove();
   }
   window.__fgCleanup = teardown;
+
+  // A page restored from the back/forward cache keeps this script's old state.
+  const onPageShow = (e) => {
+    if (e.persisted && alive()) chrome.storage.local.get('runtime').then(({ runtime }) => setRuntime(runtime));
+  };
+  window.addEventListener('pageshow', onPageShow);
 
   observer.observe(document.documentElement, { childList: true, subtree: true });
   chrome.storage.onChanged.addListener(onStorage);

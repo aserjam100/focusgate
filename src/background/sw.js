@@ -569,6 +569,26 @@ chrome.runtime.onInstalled.addListener((details) => {
 
 chrome.runtime.onStartup.addListener(() => locked(() => recompute('startup')));
 
+// declarativeNetRequest only sees real network requests. Sites with a service
+// worker (x.com and other PWAs) can answer a navigation from cache, and
+// back/forward-cache restores make no request at all, so the redirect rule
+// never fires. Catch those here: any tab landing on a configured domain
+// triggers a recompute, which sends blocked tabs to the block page.
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  const url = changeInfo.url || (changeInfo.status === 'loading' ? tab.url : null);
+  if (!url || !/^https?:/i.test(url)) return;
+  locked(async () => {
+    const { settings } = await loadAll();
+    let host;
+    try {
+      host = new URL(url).hostname;
+    } catch {
+      return;
+    }
+    if (findDomainForHost(host, settings.sites.map((s) => s.domain))) await recompute('tab-updated');
+  });
+});
+
 // Recompute on every service-worker wake-up too (covers restarts mid-unlock
 // and clock changes while the worker was asleep).
 locked(() => recompute('wake'));

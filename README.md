@@ -99,6 +99,7 @@ tests/unit/  tests/e2e/
 - **Timezone changes and DST.** Schedules are wall-clock times in the *current* system timezone, recomputed from scratch each time. Besides an exact alarm at the next transition, a 1-minute `fg-tick` alarm recomputes, which catches timezone changes, clock changes and sleep/wake.
 - **Extension updated while a block is active.** Dynamic DNR rules and registered content scripts persist across updates. `onInstalled` fills in any new settings keys, recomputes, and re-injects the content script into already-open tabs; the orphaned old instance tears itself down.
 - **Tabs open when a block starts.** DNR only affects new requests, so the worker also redirects matching open tabs to the block page.
+- **Sites with a service worker (x.com and other PWAs) and Back/Forward.** `declarativeNetRequest` only sees real network requests. A navigation the site's own service worker answers from cache, or a page restored from the back/forward cache, never hits the network, so the redirect rule can't fire. Two backup layers catch these: the worker watches `tabs.onUpdated` and redirects any tab that lands on a blocked domain, and the content script (which runs at `document_start` on configured sites) redirects itself if its site is blocked.
 
 ## Chrome limitations (and what FocusGate does about them)
 
