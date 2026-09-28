@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Blocked · FocusGate</title>
+  <link rel="stylesheet" href="../ui/common.css">
+  <link rel="stylesheet" href="block.css">
+</head>
+<body>
+  <main class="stack">
+    <header>
+      <p class="muted small">FocusGate</p>
+      <h1 id="title">Blocked</h1>
+      <p id="countdown" class="countdown"></p>
+    </header>
+
+    <div id="free" class="card hidden">
+      <p id="free-text"></p>
+      <a id="continue" class="btn" href="#">Continue</a>
+    </div>
+
+    <section class="card">
+      <h2>Today's goals</h2>
+      <p id="goals" class="goals"></p>
+    </section>
+
+    <section id="methods" class="stack">
+      <h2>Unlock</h2>
+
+      <div class="card stack" id="partner">
+        <div class="row">
+          <h3>Ask my partner</h3>
+          <span class="spacer"></span>
+          <span id="partner-left" class="pill"></span>
+        </div>
+        <p class="muted small" id="partner-desc"></p>
+        <div id="partner-request" class="stack">
+          <label class="field"><span>Why do you need this?</span>
+            <textarea id="partner-reason" maxlength="500" placeholder="Be honest. Your partner will read this."></textarea>
+          </label>
+          <button id="partner-send" class="primary">Send code request</button>
+        </div>
+        <div id="partner-verify" class="stack hidden">
+          <p class="small" id="partner-sent"></p>
+          <div class="row">
+            <input id="partner-code" type="text" inputmode="numeric" maxlength="6" placeholder="6-digit code" autocomplete="off">
+            <button id="partner-check" class="primary">Unlock</button>
+          </div>
+        </div>
+        <div id="partner-msg" class="msg"></div>
+      </div>
+
+      <div class="card stack" id="review">
+        <h3>Day review</h3>
+        <p class="muted small" id="review-desc"></p>
+        <button id="review-open">Record my day review</button>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="block.js"></script>
+</body>
+</html>

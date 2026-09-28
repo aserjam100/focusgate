@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FocusGate Settings</title>
+  <link rel="stylesheet" href="../ui/common.css">
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main class="stack">
+    <header class="row wrap">
+      <h1>FocusGate settings</h1>
+      <span class="spacer"></span>
+      <a href="../stats/stats.html">Stats</a>
+      <a href="../review/review.html">Day review &amp; history</a>
+    </header>
+
+    <div id="lock-banner" class="card banner hidden">
+      <strong>Settings are locked.</strong>
+      <span id="lock-text"></span>
+      <a class="btn" href="../block/block.html?target=settings">Unlock settings…</a>
+    </div>
+    <div id="message" class="msg"></div>
+
+    <section class="card stack">
+      <h2>Sites</h2>
+      <p class="muted small">Each site covers its subdomains. <b>Full</b> redirects to the block page. <b>Partial</b> hides feeds (YouTube, LinkedIn, Reddit, X, Instagram). <b>None</b> only applies grayscale and tracks time. Tightening changes (enabling, full block, grayscale on) always work; loosening ones need an unlock during a block window.</p>
+      <table id="sites" class="sites"></table>
+      <form id="add-site" class="row">
+        <input id="add-domain" type="text" placeholder="example.com" autocomplete="off">
+        <button class="primary" type="submit">Add site</button>
+      </form>
+    </section>
+
+    <form id="settings" class="stack">
+      <section class="card stack">
+        <h2>Global schedule</h2>
+        <p class="muted small">Used by every site set to “global schedule”. Times are in your current timezone.</p>
+        <div id="global-schedule"></div>
+      </section>
+
+      <section class="card stack">
+        <h2>Goals for today</h2>
+        <label class="field"><span>Shown on the block page and given to Claude when checking your day review.</span>
+          <textarea name="goals" rows="4" placeholder="e.g. Finish the API migration PR. Write the Q3 planning doc."></textarea>
+        </label>
+      </section>
+
+      <section class="card stack">
+        <h2>Unlocks</h2>
+        <label class="field narrow"><span>Temporary unlock duration (minutes)</span>
+          <input type="number" name="unlockMinutes" min="1" max="240">
+        </label>
+      </section>
+
+      <section class="card stack">
+        <h2>Day review (voice)</h2>
+        <div class="grid">
+          <label class="field"><span>Minimum speaking time (seconds)</span><input type="number" name="review.minSeconds" min="0"></label>
+          <label class="field"><span>Minimum words</span><input type="number" name="review.minWords" min="0"></label>
+          <label class="field"><span>Available after</span><input type="time" name="review.availableAfter"></label>
+        </div>
+        <label class="field"><span>Claude API key (optional)</span>
+          <input type="password" name="review.apiKey" placeholder="sk-ant-…" autocomplete="off">
+        </label>
+        <label class="field narrow"><span>Model</span><input type="text" name="review.model"></label>
+        <p class="muted small">With a key, your transcript and goals are sent to the Anthropic API, which judges whether the review describes real work toward your goals. The key is stored in this browser's extension storage. Without a key, only time and word count are checked.</p>
+      </section>
+
+      <section class="card stack">
+        <h2>Accountability partner</h2>
+        <div class="grid">
+          <label class="field"><span>Partner name</span><input type="text" name="partner.name"></label>
+          <label class="field"><span>Partner email</span><input type="email" name="partner.email"></label>
+        </div>
+        <div class="grid">
+          <label class="field"><span>Email backend</span>
+            <select name="partner.sender">
+              <option value="apps-script">Google Apps Script</option>
+              <option value="webhook">Generic webhook (JSON + Bearer)</option>
+            </select>
+          </label>
+          <label class="field"><span>Code expiry (minutes)</span><input type="number" name="partner.codeExpiryMinutes" min="1"></label>
+          <label class="field"><span>Max requests per day</span><input type="number" name="partner.maxPerDay" min="0" max="20"></label>
+        </div>
+        <label class="field"><span>Backend URL</span><input type="url" name="partner.endpoint" placeholder="https://script.google.com/macros/s/…/exec"></label>
+        <label class="field"><span>Backend shared secret</span><input type="password" name="partner.secret" autocomplete="off"></label>
+        <p class="muted small">See the README for the 5-minute Apps Script setup. The secret only stops strangers from using your endpoint to send mail.</p>
+      </section>
+
+      <section class="card stack">
+        <h2>Grayscale</h2>
+        <label class="field"><span>Phrase you must type to turn grayscale off for a site</span>
+          <textarea name="grayscalePhrase" rows="2"></textarea>
+        </label>
+      </section>
+
+      <section class="card stack">
+        <h2>Partial mode</h2>
+        <label class="field narrow"><span>Scroll limit (screen heights)</span><input type="number" name="scrollLimitScreens" min="1" max="100"></label>
+        <label class="field"><span>Allowed subreddits (one per line, without r/)</span>
+          <textarea name="redditWhitelist" rows="3" placeholder="programming&#10;askhistorians"></textarea>
+        </label>
+      </section>
+
+      <div class="savebar row">
+        <span id="save-msg" class="small muted"></span>
+        <span class="spacer"></span>
+        <button id="save" type="submit" class="primary">Save settings</button>
+      </div>
+    </form>
+  </main>
+  <script type="module" src="options.js"></script>
+</body>
+</html>

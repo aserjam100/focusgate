@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "FocusGate",
+  "version": "1.0.0",
+  "description": "Block distracting sites on a schedule, with friction-based unlocks.",
+  "minimum_chrome_version": "116",
+  "permissions": ["storage", "declarativeNetRequest", "alarms", "scripting", "tabs", "idle"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "src/background/sw.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "16": "src/icons/icon16.png",
+      "32": "src/icons/icon32.png",
+      "48": "src/icons/icon48.png",
+      "128": "src/icons/icon128.png"
+    }
+  },
+  "options_ui": {
+    "page": "src/options/options.html",
+    "open_in_tab": true
+  },
+  "icons": {
+    "16": "src/icons/icon16.png",
+    "32": "src/icons/icon32.png",
+    "48": "src/icons/icon48.png",
+    "128": "src/icons/icon128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["src/block/block.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

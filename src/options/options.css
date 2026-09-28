@@ -1,0 +1,32 @@
+main { max-width: 820px; margin: 0 auto; padding: 32px 16px 96px; }
+header { gap: 16px; }
+header h1 { margin: 0; }
+.banner { border-color: var(--warn); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.narrow { max-width: 260px; }
+button.link { border: none; background: none; color: var(--accent); padding: 2px 4px; }
+
+table.sites { width: 100%; border-collapse: collapse; }
+table.sites td { padding: 8px 6px; border-top: 1px solid var(--border); vertical-align: middle; }
+table.sites tr:first-child td { border-top: none; }
+table.sites td.domain { font-weight: 500; word-break: break-all; }
+table.sites select { width: auto; }
+table.sites tr.sched-row td { border-top: none; padding-top: 0; }
+
+.sched { display: flex; flex-direction: column; gap: 8px; }
+.sched-days { display: flex; flex-direction: column; gap: 4px; }
+.sched-days.disabled { opacity: .45; pointer-events: none; }
+.sched-day { display: flex; gap: 10px; align-items: flex-start; }
+.sched-name { width: 36px; padding-top: 6px; font-weight: 500; }
+.sched-wins { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+.sched-win { display: inline-flex; gap: 4px; align-items: center; }
+.sched-win input[type=time] { width: auto; }
+
+.savebar {
+  position: sticky; bottom: 0; background: var(--bg); padding: 12px 0; border-top: 1px solid var(--border);
+}
+@media (max-width: 600px) {
+  table.sites, table.sites tbody, table.sites tr, table.sites td { display: block; }
+  table.sites td { border-top: none; padding: 4px 0; }
+  table.sites tr { border-top: 1px solid var(--border); padding: 8px 0; }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "focusgate",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Chrome extension that blocks distracting sites with friction-based unlocks",
+  "type": "module",
+  "scripts": {
+    "test": "node --test 'tests/unit/*.test.js'",
+    "test:e2e": "node --test --test-concurrency=1 'tests/e2e/*.test.js'",
+    "zip": "rm -f focusgate.zip && zip -r focusgate.zip manifest.json src -x '*.DS_Store'"
+  },
+  "devDependencies": {
+    "playwright": "1.63"
+  }
+}

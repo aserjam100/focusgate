@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>FocusGate</title>
+  <link rel="stylesheet" href="../ui/common.css">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="row">
+    <h1>FocusGate</h1>
+    <span class="spacer"></span>
+    <button id="pause" title="Pause or resume all blocking"></button>
+  </header>
+  <p id="summary" class="muted small"></p>
+  <div id="message" class="msg"></div>
+
+  <ul id="sites"></ul>
+
+  <form id="add" class="row">
+    <input id="domain" type="text" placeholder="Add a site, e.g. news.ycombinator.com" autocomplete="off">
+    <button class="primary" type="submit">Add</button>
+  </form>
+
+  <footer class="row wrap small">
+    <a href="#" data-open="src/options/options.html">Settings</a>
+    <a href="#" data-open="src/stats/stats.html">Stats</a>
+    <a href="#" data-open="src/review/review.html">Day review</a>
+  </footer>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

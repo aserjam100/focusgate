@@ -1,0 +1,13 @@
+body { width: 360px; padding: 14px; }
+header h1 { margin: 0; font-size: 18px; }
+#summary { margin: 4px 0 10px; }
+#message { margin-bottom: 10px; }
+#sites { list-style: none; margin: 0 0 12px; padding: 0; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+#sites li { display: flex; align-items: center; gap: 8px; padding: 8px 10px; }
+#sites li + li { border-top: 1px solid var(--border); }
+#sites .domain { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#sites .remove { border: none; background: none; color: var(--muted); padding: 2px 6px; font-size: 16px; line-height: 1; }
+#sites .remove:hover { color: var(--danger); }
+#sites .gray-link { font-size: 11px; }
+form#add { margin-bottom: 12px; }
+footer { gap: 14px; }
