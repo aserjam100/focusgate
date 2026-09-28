@@ -4,7 +4,6 @@ import { randomCode, hashCode, verifyCode } from '../../src/lib/crypto.js';
 import { countWords, phraseMatches } from '../../src/lib/text.js';
 import { computeStreaks, recordAttempt, addTime } from '../../src/lib/stats.js';
 import { dateKey, nextMidnight } from '../../src/lib/time.js';
-import { buildRequest, parseJudgement, judgeReview } from '../../src/lib/llm.js';
 import { sendPartnerEmail } from '../../src/lib/email.js';
 import { DEFAULT_PHRASE } from '../../src/lib/defaults.js';
 
@@ -54,30 +53,6 @@ test('streaks: clean days count, an unlock in a window breaks the streak', () =>
   addTime(stats, 'reddit.com', 15, now);
   assert.equal(stats.days[dateKey(now)].time['reddit.com'], 15);
   assert.equal(stats.days[dateKey(now)].attempts.phrase, 2);
-});
-
-test('LLM request shape: structured output, browser header, fallback on Opus 5', () => {
-  const { body, headers } = buildRequest({ model: 'claude-opus-5', goals: 'ship X', transcript: 'did X' });
-  assert.equal(body.output_config.format.type, 'json_schema');
-  assert.deepEqual(body.output_config.format.schema.required, ['approved', 'reason']);
-  assert.equal(headers['anthropic-dangerous-direct-browser-access'], 'true');
-  assert.equal(body.fallbacks, 'default');
-  assert.equal(headers['anthropic-beta'], 'server-side-fallback-2026-07-01');
-  const h = buildRequest({ model: 'claude-haiku-4-5', goals: '', transcript: '' });
-  assert.equal(h.body.fallbacks, undefined);
-  assert.equal(h.headers['anthropic-beta'], undefined);
-});
-
-test('LLM response parsing', async () => {
-  assert.deepEqual(parseJudgement({ content: [{ type: 'text', text: '{"approved":true,"reason":"ok"}' }] }), { approved: true, reason: 'ok' });
-  assert.equal(parseJudgement({ stop_reason: 'refusal', content: [] }).approved, false);
-  assert.throws(() => parseJudgement({ content: [{ type: 'text', text: 'nope' }] }));
-  const fakeFetch = async (url, init) => {
-    assert.equal(url, 'https://api.anthropic.com/v1/messages');
-    assert.equal(init.headers['x-api-key'], 'k');
-    return { ok: false, status: 401, json: async () => ({ error: { message: 'invalid x-api-key' } }) };
-  };
-  await assert.rejects(judgeReview({ apiKey: 'k', model: 'claude-opus-5', goals: '', transcript: '' }, fakeFetch), /invalid x-api-key/);
 });
 
 test('email sender posts JSON with the secret and surfaces backend errors', async () => {

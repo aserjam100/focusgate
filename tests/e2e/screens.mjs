@@ -16,7 +16,7 @@ for (let i = 0; i < 30; i++) days[day(i)] = {
   successes: { partner: i % 7 === 4 ? 1 : 0, review: i % 5 === 1 ? 1 : 0, phrase: i === 2 ? 1 : 0 },
   windowUnlocks: i % 7 === 4 ? 1 : 0 };
 await fg.sw.evaluate((stats) => chrome.storage.local.set({ stats }), { installDate: day(29), days });
-await fg.sw.evaluate((reviews) => chrome.storage.local.set({ reviews }), [{ ts: Date.now() - 86400000, date: day(1), transcript: 'Today I refactored the tokenizer and wrote tests for error recovery.', words: 160, speakingSeconds: 104, approved: true, reason: 'Concrete progress on the parser rewrite.', llmUsed: true }]);
+await fg.sw.evaluate((reviews) => chrome.storage.local.set({ reviews }), [{ ts: Date.now() - 86400000, date: day(1), transcript: 'Today I refactored the tokenizer and wrote tests for error recovery.', words: 160, speakingSeconds: 104, approved: true, reason: 'Met duration and word-count requirements.' }]);
 const p = await fg.context.newPage();
 await p.setViewportSize({ width: 1000, height: 900 });
 for (const [name, path] of [['stats', 'src/stats/stats.html'], ['review', 'src/review/review.html'], ['phrase', `src/phrase/phrase.html?site=${reddit}`]]) {

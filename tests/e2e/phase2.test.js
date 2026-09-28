@@ -20,7 +20,25 @@ after(async () => fg && (await fg.close()));
 const FAKE_SPEECH = () => {
   const words = 'today I refactored the tokenizer wrote tests for the parser and reviewed two pull requests with my team'.split(' ');
   class FakeRecognition {
+    static availability = window.__fakeAvailability || 'available';
+    static available = async (opts) => {
+      window.__availableCalls = (window.__availableCalls || []).concat([opts]);
+      return FakeRecognition.availability;
+    };
+    static install = async () => {
+      window.__installed = true;
+      FakeRecognition.availability = 'available';
+      return true;
+    };
+    // Real Chrome defines this as a prototype accessor.
+    get processLocally() {
+      return !!this._processLocally;
+    }
+    set processLocally(v) {
+      this._processLocally = v;
+    }
     start() {
+      window.__startedWith = { processLocally: this.processLocally, lang: this.lang };
       if (this._t) throw new Error('already started');
       let i = 0;
       this._t = setInterval(() => {
@@ -60,6 +78,7 @@ test('review is refused before the configured time of day', async () => {
 
 test('microphone denial shows guidance instead of failing silently', async () => {
   const page = await fg.context.newPage();
+  await page.addInitScript(FAKE_SPEECH);
   await page.addInitScript(() => {
     navigator.mediaDevices.getUserMedia = async () => {
       throw new DOMException('Permission denied', 'NotAllowedError');
@@ -89,6 +108,9 @@ test('speaking a long enough review shows live text, then unlocks everything unt
   await waitFor(async () => Number(await page.textContent('#words')) >= 12);
   await waitFor(async () => parseInt(await page.textContent('#secs')) >= 2);
   assert.match(await page.textContent('#final'), /refactored the tokenizer/);
+  const started = await page.evaluate(() => window.__startedWith);
+  assert.equal(started.processLocally, true, 'recognition must run on-device');
+  assert.ok(started.lang);
   await page.click('#stop');
   await waitFor(async () => !(await page.isDisabled('#submit')));
   await page.click('#submit');
@@ -110,48 +132,42 @@ test('speaking a long enough review shows live text, then unlocks everything unt
   await fg.setState({ dayUnlockUntil: 0 });
 });
 
-test('with an API key, Claude verdict decides and its reason is shown', async () => {
-  await fg.setState({ settingsUnlockUntil: Date.now() + 60_000 });
-  await fg.send('saveSettings', { patch: { review: { apiKey: 'sk-ant-test' } } });
-  await fg.setState({ settingsUnlockUntil: 0 });
-  // Stub fetch inside the service worker to capture the request.
-  await fg.sw.evaluate(() => {
-    globalThis.__calls = [];
-    globalThis.fetch = async (url, init) => {
-      globalThis.__calls.push({ url, init });
-      const verdict = JSON.parse(init.body).messages[0].content.includes('cat videos')
-        ? { approved: false, reason: 'This describes watching videos, not work on the parser.' }
-        : { approved: true, reason: 'Concrete parser progress.' };
-      return new Response(JSON.stringify({ stop_reason: 'end_turn', content: [{ type: 'text', text: JSON.stringify(verdict) }] }), { status: 200 });
-    };
-  });
-  const words = Array(20).fill('watched cat videos all day').join(' ');
-  let res = await fg.send('reviewSubmit', { transcript: words, speakingSeconds: 5 });
-  assert.equal(res.approved, false);
-  assert.equal(res.llmUsed, true);
-  assert.match(res.reason, /watching videos/);
-  assert.equal((await fg.rules()).length, 6);
-
-  const calls = await fg.sw.evaluate(() => globalThis.__calls.map((c) => ({ url: c.url, headers: c.init.headers, body: JSON.parse(c.init.body) })));
-  assert.equal(calls[0].url, 'https://api.anthropic.com/v1/messages');
-  assert.equal(calls[0].headers['x-api-key'], 'sk-ant-test');
-  assert.match(calls[0].body.messages[0].content, /<goals>\nFinish the parser rewrite/);
-  assert.equal(calls[0].body.output_config.format.type, 'json_schema');
-
-  res = await fg.send('reviewSubmit', { transcript: Array(20).fill('rewrote parser error recovery').join(' '), speakingSeconds: 5 });
-  assert.equal(res.approved, true);
-  assert.equal(res.reason, 'Concrete parser progress.');
-  assert.equal((await fg.rules()).length, 0);
-  await fg.setState({ dayUnlockUntil: 0 });
+test('downloads the on-device speech model once when it is not installed yet', async () => {
+  const page = await fg.context.newPage();
+  await page.addInitScript(() => (window.__fakeAvailability = 'downloadable'));
+  await page.addInitScript(FAKE_SPEECH);
+  await page.goto(`${fg.base}/src/review/review.html`);
+  await page.click('#start');
+  await page.waitForSelector('#rec:not(.hidden)');
+  assert.equal(await page.evaluate(() => window.__installed), true);
+  const calls = await page.evaluate(() => window.__availableCalls);
+  assert.equal(calls[0].processLocally, true);
+  await page.close();
 });
 
-test('API failure does not grant the unlock', async () => {
-  await fg.sw.evaluate(() => {
-    globalThis.fetch = async () => new Response(JSON.stringify({ error: { message: 'overloaded' } }), { status: 529 });
-  });
-  const res = await fg.send('reviewSubmit', { transcript: Array(20).fill('rewrote parser error recovery').join(' '), speakingSeconds: 5 });
-  assert.equal(res.approved, false);
-  assert.match(res.reason, /Couldn't reach Claude.*overloaded/);
-  const { reviews } = await fg.storage(['reviews']);
-  assert.equal(reviews.length, 5, 'every submission is logged');
+test('refuses to record (no cloud fallback) when on-device recognition is unavailable', async () => {
+  for (const setup of [
+    () => (window.__fakeAvailability = 'unavailable'),
+    // Older Chrome: speech API exists but has no on-device support.
+    () => {
+      window.__noOnDevice = true;
+    },
+  ]) {
+    const page = await fg.context.newPage();
+    await page.addInitScript(setup);
+    await page.addInitScript(FAKE_SPEECH);
+    await page.addInitScript(() => {
+      if (window.__noOnDevice) {
+        class Old { start() { window.__startedWith = {}; } stop() {} }
+        window.SpeechRecognition = window.webkitSpeechRecognition = Old;
+      }
+    });
+    await page.goto(`${fg.base}/src/review/review.html`);
+    await page.click('#start');
+    await page.waitForSelector('#mic-msg.error');
+    assert.match(await page.textContent('#mic-msg'), /can't transcribe|no on-device speech recognition/);
+    assert.equal(await page.evaluate(() => window.__startedWith), undefined, 'recognition never started');
+    assert.equal(await page.isVisible('#rec'), false);
+    await page.close();
+  }
 });

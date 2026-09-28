@@ -84,12 +84,47 @@ async function ensureMicPermission() {
   }
 }
 
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let speechLang = null;
+
+/**
+ * Find a language Chrome can transcribe on this device, downloading its
+ * speech model once if needed. Returns null if on-device recognition isn't
+ * possible: there is deliberately no fallback to Chrome's cloud recognition,
+ * so audio never leaves the computer.
+ */
+async function ensureOnDeviceModel() {
+  if (speechLang) return speechLang;
+  if (!SR || typeof SR.available !== 'function' || !('processLocally' in SR.prototype)) {
+    msg(
+      $('#mic-msg'),
+      'This Chrome has no on-device speech recognition. FocusGate never sends your voice to a server, so please update to the latest desktop Chrome to use the day review.'
+    );
+    return null;
+  }
+  const candidates = [...new Set([navigator.language, 'en-US'].filter(Boolean))];
+  for (const lang of candidates) {
+    const options = { langs: [lang], processLocally: true };
+    const status = await SR.available(options);
+    if (status === 'available') return (speechLang = lang);
+    if (status === 'downloadable' || status === 'downloading') {
+      msg($('#mic-msg'), `Downloading Chrome's on-device speech model for ${lang}. This happens once and can take a minute…`, 'ok');
+      if (await SR.install(options).catch(() => false)) {
+        msg($('#mic-msg'), '');
+        return (speechLang = lang);
+      }
+    }
+  }
+  msg($('#mic-msg'), `Chrome can't transcribe ${candidates.join(' or ')} on this device, so the day review isn't available here.`);
+  return null;
+}
+
 function createRecognition() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   const rec = new SR();
   rec.continuous = true;
   rec.interimResults = true;
-  rec.lang = navigator.language || 'en-US';
+  rec.lang = speechLang;
+  rec.processLocally = true; // never use the cloud recognizer
 
   rec.onresult = (ev) => {
     lastResultAt = Date.now();
@@ -113,9 +148,10 @@ function createRecognition() {
         stop();
         msg($('#mic-msg'), 'Speech recognition was blocked. Allow the microphone for this page and try again.');
         return;
-      case 'network':
+      case 'language-not-supported':
         stop();
-        msg($('#mic-msg'), "Chrome's speech recognition needs an internet connection (audio is processed by Google). Check your connection and press Start again.");
+        speechLang = null;
+        msg($('#mic-msg'), "Chrome's on-device speech model isn't installed for this language. Press Start to download it.");
         return;
       case 'audio-capture':
         stop();
@@ -147,10 +183,8 @@ function createRecognition() {
 
 async function start() {
   msg($('#mic-msg'), '');
-  if (!(window.SpeechRecognition || window.webkitSpeechRecognition)) {
-    msg($('#mic-msg'), 'This browser has no Web Speech API. Use desktop Chrome.');
-    return;
-  }
+  // Check the model first: installing it needs the click's user activation.
+  if (!(await ensureOnDeviceModel())) return;
   if (!(await ensureMicPermission())) return;
   recognition ||= createRecognition();
   recording = true;
@@ -185,7 +219,7 @@ function reset() {
 async function submit() {
   stop();
   $('#submit').disabled = true;
-  $('#submit').textContent = settings.review.apiKey ? 'Checking with Claude…' : 'Submitting…';
+  $('#submit').textContent = 'Submitting…';
   try {
     const res = await send('reviewSubmit', {
       transcript: transcript(),
@@ -227,7 +261,7 @@ async function loadHistory() {
       pill,
       Object.assign(document.createElement('span'), {
         className: 'muted small',
-        textContent: `${r.words} words · ${r.speakingSeconds}s${r.llmUsed ? ' · Claude' : ''}`,
+        textContent: `${r.words} words · ${r.speakingSeconds}s`,
       })
     );
     const reason = Object.assign(document.createElement('p'), { className: 'small muted', textContent: r.reason });
@@ -244,9 +278,6 @@ function renderAvailability() {
   $('#start').disabled = !ok;
   if (!ok) msg($('#avail'), `The day review opens at ${formatHM(avail)}. Come back then.`);
   else msg($('#avail'), '');
-  $('#llm-note').textContent = r.apiKey
-    ? 'Claude will check your review against your goals.'
-    : 'No API key set, so only time and word count are checked.';
 }
 
 $('#start').onclick = start;

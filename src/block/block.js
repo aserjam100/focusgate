@@ -85,8 +85,7 @@ function render() {
   const availMin = parseHM(r.availableAfter);
   const available = minutesSinceMidnight(now) >= availMin;
   $('#review-desc').textContent =
-    `Speak about what you did today (at least ${r.minSeconds}s and ${r.minWords} words` +
-    `${r.apiKey ? ', checked by Claude against your goals' : ''}). Unlocks everything until midnight. ` +
+    `Speak about what you did today (at least ${r.minSeconds}s and ${r.minWords} words). Unlocks everything until midnight. ` +
     (available ? 'Available now.' : `Available after ${formatHM(availMin)}.`);
   $('#review-open').disabled = !available;
 }

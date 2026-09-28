@@ -1,3 +1,28 @@
+# Dependencies (only needed for tests)
 node_modules/
+
+# Build / packaging output
 *.zip
+*.crx
+# Private key Chrome creates when you "Pack extension". Never commit it.
+*.pem
+
+# Test artifacts
+test-results/
+playwright-report/
+screenshots/
+
+# Secrets and local config
+.env
+.env.*
+*.local
+.clasp.json
+.clasprc.json
+
+# OS / editor noise
 .DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.log

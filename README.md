@@ -1,115 +1,233 @@
 # FocusGate
 
-A Chrome extension (Manifest V3) that blocks distracting sites on a schedule. Unlocking takes deliberate effort: a code from your accountability partner, a spoken end-of-day review, or typing a humbling phrase.
+A Chrome extension that puts a gate in front of the sites you reach for on autopilot (Instagram, YouTube, LinkedIn, X, Reddit, or anything you add).
 
-Plain JavaScript, HTML and CSS. No build step.
+During the hours you choose, those sites show a block page with your goals for the day instead. You can still get through, but only with some effort:
 
-## Features
+- **Ask a friend** for an unlock code (optional, needs a 5-minute setup).
+- **Say out loud what you did today** in the evening, and everything unlocks until midnight.
+- For sites in **grayscale**, type a humbling sentence word for word to bring the colour back.
 
-- **Scheduled blocking.** Uses `declarativeNetRequest` dynamic rules, with a global schedule and optional per-site schedules. Each weekday can have its own windows, and windows may cross midnight (e.g. Fri 22:00–02:00). Blocking covers subdomains (`old.reddit.com`, `m.youtube.com`, …). Blocked pages redirect to a block page that shows the site, your goals for the day, a countdown to the end of the window, and the unlock options.
-- **Gated settings.** During a block window, anything that loosens blocking needs an unlock: unchecking or deleting a site, changing its mode or schedule, turning grayscale off, editing the global schedule or requirements, or pausing. Changes that tighten blocking (adding a site, enabling one, turning on grayscale) always work.
-- **Temporary unlocks.** They last 15 minutes by default and relock automatically via `chrome.alarms`. While one is running, the extension badge shows a countdown. Any tab that is still open on the site is sent back to the block page when it relocks.
-- **Voice day review.** Speak a review of your day on a full extension tab (Web Speech API, continuous, with live interim text). It must meet a minimum speaking time and word count. If you add a Claude API key, Claude also judges the review against your goals. It is only available after a configured time (default 17:00). Passing unlocks everything until midnight. Every transcript is saved to a history log.
-- **Accountability partner.** Your partner gets an email with a 6-digit code, the site you want, and your reason. Only a salted hash of the code is stored, with a 30-minute expiry. You get 3 requests per day, 5 wrong guesses kill a code, and a partner code can also unlock *settings*.
-- **Grayscale.** Per-site `filter: grayscale(100%)` during block windows. It works alongside blocking or on its own ("No block" mode). To turn it off until the window ends, you must type a phrase exactly. Paste, drop, autocomplete and autocorrect are all blocked on that input.
-- **Stats.** A local dashboard showing time per site per day, unlock attempts and successes per method, and your current and longest streak (days with no unlock during a block window).
+Settings are locked during block windows, so you can't switch it off in a weak moment.
 
-## Install (load unpacked)
+**Private by default.** Everything is stored in your own browser. Speech is transcribed on your device. There are no accounts, analytics or trackers, and no servers of ours. See [Privacy](#privacy).
 
-1. Download or clone this folder.
-2. Open `chrome://extensions` and turn on **Developer mode** (top right).
-3. Click **Load unpacked** and select the `focusgate` folder (the one containing `manifest.json`).
-4. The settings page opens. Pin FocusGate from the puzzle-piece menu so the badge countdown is visible.
+---
 
-On first install you get a **30-minute setup grace period** with settings unlocked, even if a block window is active. Use it to set your goals, schedule and partner. After that the normal rules apply.
+## Install
 
-Requires Chrome 116 or later.
+FocusGate isn't on the Chrome Web Store; you load it yourself. It takes about a minute.
 
-## Partner email backend (Google Apps Script, ~5 minutes)
+**1. Download it**
 
-An extension can't send email by itself. FocusGate POSTs the code to a small Google Apps Script web app, which emails your partner from **your own Gmail** via `MailApp`. You don't need a domain, API keys, or any account besides Google.
+- **Easiest:** on this GitHub page, click the green **Code** button, then **Download ZIP**. Unzip it somewhere you'll keep it (e.g. `Documents/focusgate`). Chrome loads the extension from that folder, so don't delete it afterwards.
+- **Or with git:**
+  ```sh
+  git clone https://github.com/<your-username>/focusgate.git
+  ```
 
-1. Go to <https://script.google.com> and create a **New project**. Name it `FocusGate mailer`.
-2. Replace the contents of `Code.gs` with [`backend/apps-script/Code.gs`](backend/apps-script/Code.gs).
-3. Open **Project Settings** (gear icon) → **Script properties** and add:
+**2. Load it into Chrome**
+
+1. Open `chrome://extensions` in the address bar.
+2. Turn on **Developer mode** (top-right toggle).
+3. Click **Load unpacked** and select the `focusgate` folder, the one that contains `manifest.json`. (If you unzipped a GitHub download, it may be called `focusgate-main`.)
+4. The FocusGate settings page opens automatically.
+5. Click the puzzle-piece icon in Chrome's toolbar and **pin** FocusGate. The icon shows a countdown while something is unlocked.
+
+Use an up-to-date desktop Chrome; the voice review relies on Chrome's recent on-device speech recognition. Other Chromium-based browsers may work but aren't tested.
+
+**3. Set it up (you have 30 minutes)**
+
+Right after installing, settings stay unlocked for **30 minutes** even if you're inside a block window. Use that time to:
+
+- adjust the sites and the schedule,
+- write your goals,
+- optionally set up an accountability partner (see below).
+
+After that, the lock rules apply.
+
+**Updating:** download the new version into the same folder (or `git pull`), then click the ↻ reload icon on FocusGate's card in `chrome://extensions`. Your settings and history are kept.
+
+**Uninstalling:** click **Remove** on the card in `chrome://extensions`. This deletes all FocusGate data from the browser.
+
+---
+
+## How it works
+
+- **Block windows** are the times a site is gated, e.g. Mon–Fri 9:00–18:00. Outside them everything works normally and you can change any setting.
+- **During a block window,** a blocked site redirects to the block page. It shows the site, your goals, how long until the window ends, and the ways to unlock.
+- **Locked settings.** Inside a window, anything that would *loosen* the gate needs an unlock first. That includes turning a site off, removing it, switching it to "No block", editing schedules or requirements, turning grayscale off, or pausing FocusGate. Anything that *tightens* the gate (adding a site, turning one on, turning grayscale on) always works.
+- **Unlocks:**
+  - **Partner code:** unlocks one site (or your settings) for 15 minutes by default.
+  - **Day review:** unlocks everything until midnight.
+  - **Grayscale phrase:** restores colour on one site until its window ends.
+  - When a temporary unlock runs out, the site locks again by itself, including any tab you still have open.
+
+---
+
+## Settings explained
+
+Open settings from the popup (**Settings** link) or via right-click on the icon → **Options**.
+
+### Sites
+
+Each row is one site. A site always covers its subdomains, so `reddit.com` also blocks `www.`, `old.` and `m.reddit.com`.
+
+| Control | What it does |
+|---|---|
+| **On/off switch** | Whether FocusGate acts on this site at all. Turning it off during a block window needs an unlock. |
+| **Full block / No block** | *Full block* sends you to the block page during block windows. *No block* leaves the site usable; use it with Grayscale, or just to track your time there. |
+| **Grayscale** | Shows the site in black and white during block windows. It works with either mode: on a full-block site it stays grey even while unlocked. Turning it off needs the typed phrase or an unlock. |
+| **Global / Custom schedule** | *Global* uses the schedule below. *Custom* gives this site its own weekly schedule, edited right under its row (click **Save … schedule**). |
+| **Status pill** | *blocked* (gated now), *unlocked* (temporarily open), *in window* (inside a block window but not blocked, e.g. in No block mode), *free* (outside its block window). The popup shows the same, plus the time left on an unlock. |
+| **Remove** | Deletes the site. Needs an unlock during a block window. |
+| **Add site** | Type a domain (`news.ycombinator.com`) or paste a URL. It always works, even during a window. |
+
+### Global schedule
+
+When blocking is active for every site set to *Global*.
+
+- **Block all the time:** ignore the days below; the gate is always on.
+- **Presets:** *Mon–Fri 9–18*, *Every day 9–18*, *Nights 22–07*, or *Clear*.
+- **Per day:** each weekday can have any number of windows (**+ window**, **×** to remove). A window whose end time is at or before its start runs past midnight into the next day, shown as "(+1 day)". For example, Fri 22:00–02:00 blocks until Saturday 02:00.
+- Times follow your computer's current timezone, including daylight-saving changes and travel.
+
+### Goals for today
+
+Free text shown on every block page and on the day-review page. It's there to remind you what you're protecting your time for.
+
+### Unlocks
+
+- **Temporary unlock duration (minutes):** how long a partner code opens a site (or your settings). Default 15.
+
+### Day review (voice)
+
+In the evening, you speak a review of your day. If you talk long enough, everything unlocks until midnight. Every review is saved in a history on the review page.
+
+- **Minimum speaking time (seconds):** default 90. This counts only time when you're actually talking; silence doesn't count.
+- **Minimum words:** default 150.
+- **Available after:** the review can't be started before this time of day. Default 17:00, so you can't do it at 9 am and have the whole day free.
+
+### Accountability partner (optional)
+
+Off until you configure it. When set up, the block page gets an **Ask my partner** button. You type a reason, your partner receives an email with a 6-digit code, the site, and your reason, and you type the code to unlock.
+
+- **Partner name / email:** who gets the code.
+- **Email backend:** *Google Apps Script* (recommended, see setup below), or *Generic webhook* for your own server.
+- **Code expiry (minutes):** codes stop working after this long. Default 30.
+- **Max requests per day:** default 3, so you can't spam your friend.
+- **Backend URL / shared secret:** from the setup below.
+
+Codes are never stored in readable form. After 5 wrong guesses a code stops working.
+
+### Grayscale
+
+- **Phrase:** what you must type to bring colour back to a greyed-out site. Default: *"I am not the master of my own mind, my mind controls me and I am weak"*. You type it on a separate page where paste, drag-and-drop, autocomplete and autocorrect are disabled. It must match exactly, though capitalisation doesn't matter. Colour then stays on until that site's current block window ends.
+
+### Popup
+
+- **Pause / Resume:** turns all blocking off or on. Pausing during a block window needs an unlock; resuming always works.
+- **Switches and ×:** quick on/off and remove for each site (same rules as above).
+- **color…:** appears next to sites that are currently grey and opens the phrase page.
+- **Links:** Settings, Stats, Day review.
+
+**Toolbar badge:** `12m` means a site is unlocked for 12 more minutes. `day` means the day review passed and everything is open until midnight. `off` means FocusGate is paused.
+
+### Stats
+
+The **Stats** page shows:
+
+- time spent per site per day,
+- unlock attempts and successes for each method,
+- your current and longest **streak** (days with no unlocks during a block window).
+
+Time is counted only while a tracked site's tab is focused and you're active at the computer.
+
+---
+
+## Partner email setup (optional, about 5 minutes)
+
+A browser extension can't send email by itself. FocusGate hands the code to a tiny **Google Apps Script** that *you* deploy under your own Google account. It emails your partner from your Gmail. There's no third-party service, and nothing runs on anyone else's server.
+
+1. Go to <https://script.google.com> and click **New project**. Name it `FocusGate mailer`.
+2. Delete what's in `Code.gs` and paste in the contents of [`backend/apps-script/Code.gs`](backend/apps-script/Code.gs) from this repo.
+3. Click the gear icon (**Project Settings**), scroll to **Script properties**, and add:
    | Property | Value |
    |---|---|
-   | `SHARED_SECRET` | A long random string, e.g. the output of `openssl rand -hex 24`. Required. |
-   | `PARTNER_EMAIL` | Your partner's email address. Recommended: codes then *always* go here, whatever the extension sends, so changing the address in the extension can't redirect codes to you. |
-   | `MAX_PER_DAY` | Optional server-side daily cap (default `3`). |
-4. In the editor, select `testSend` and click **Run**. Approve the Gmail permission prompt. You'll get a test email.
-5. Click **Deploy → New deployment**, choose type **Web app**, and set:
-   - Execute as: **Me**
-   - Who has access: **Anyone** (the shared secret is what protects it)
-6. Copy the **Web app URL** (it ends in `/exec`).
-7. In FocusGate settings → **Accountability partner**, set:
-   - **Email backend:** `Google Apps Script`
+   | `SHARED_SECRET` | Any long random string (e.g. from a password generator). **Required.** |
+   | `PARTNER_EMAIL` | Your partner's email address. **Recommended:** codes then always go here, even if someone changes the address in the extension. |
+   | `MAX_PER_DAY` | Optional. A daily limit enforced on the server too (default 3). |
+4. Back in the editor, pick `testSend` from the function dropdown and click **Run**. Allow the permissions Google asks for. You'll receive a test email.
+5. Click **Deploy → New deployment**. Click the gear next to "Select type", choose **Web app**, and set:
+   - **Execute as:** Me
+   - **Who has access:** Anyone. The shared secret is what keeps strangers out.
+
+   Then click **Deploy** and copy the **Web app URL** (it ends in `/exec`).
+6. In FocusGate settings → **Accountability partner**, set:
+   - **Email backend:** Google Apps Script
    - **Backend URL:** the `/exec` URL
    - **Backend shared secret:** the same `SHARED_SECRET`
    - Your partner's name and email
 
-   Then click **Save settings**.
+   Click **Save settings**.
 
-To check it's live, open the `/exec` URL in a browser. You should see `{"ok":true,"service":"focusgate-mailer"}`.
+To check it works, open the `/exec` URL in a browser. It should say `{"ok":true,"service":"focusgate-mailer"}`.
 
-If you edit `Code.gs` later, use **Deploy → Manage deployments → Edit → New version** so the URL stays the same.
+If you ever change the script, use **Deploy → Manage deployments → ✏️ Edit → Version: New version** so the URL stays the same.
 
-Gmail's free `MailApp` quota is about 100 emails a day, far more than needed here.
+**Your own server instead?** Choose *Generic webhook*. FocusGate POSTs `{to, partnerName, site, reason, code, expiresMinutes}` as JSON with an `Authorization: Bearer <secret>` header, and expects `{"ok": true}` back. The senders live in `src/lib/email.js`.
 
-**Other providers.** Senders live in `src/lib/email.js` (`SENDERS`). The `webhook` sender POSTs the same JSON with an `Authorization: Bearer <secret>` header, so a Cloudflare Worker using Resend, Postmark, etc. also works. Note that Resend only delivers to arbitrary recipients from a domain you have verified.
+---
 
-## Claude check for the day review (optional)
+## Privacy
 
-Paste an Anthropic API key into Settings → Day review. After you pass the time and word-count requirements, the service worker sends your transcript and goals to the Messages API (`claude-opus-5` by default; the model is editable). It requests structured output (`{"approved": bool, "reason": string}`) and shows you the reason. If the API call fails, the unlock is **not** granted. Without a key, only time and word count are checked.
+| Data | Where it goes |
+|---|---|
+| Sites, schedules, goals, settings, unlock state | Stored in your browser (`chrome.storage.local`). Never uploaded. |
+| Time-on-site stats, review transcripts | Stored in your browser. Never uploaded. |
+| Your voice | Transcribed **on your device** by Chrome's local speech model. FocusGate never uses cloud speech recognition. If on-device recognition isn't available, the review simply won't start. The first time, Chrome downloads its speech model (a one-time download *to* your computer; nothing is sent). |
+| Partner unlock (only if you set it up) | When *you* press **Ask my partner**, the code, site name, and your typed reason go to *your* Apps Script, which emails your partner. Nothing else, and nothing if you never configure it. |
 
-## Using it
+The extension contains no analytics, telemetry, remote code or external libraries.
 
-- **Popup:** quick toggles, add/remove sites, pause/resume, and links to settings, stats and the day review. A "color…" link appears next to sites that are currently grayscale.
-- **Settings page:** sites (mode, grayscale, global or custom schedule), global schedule (with presets), goals, unlock duration, day-review requirements, partner, grayscale phrase.
-- **Unlock settings during a block window:** click **Unlock settings…** on the settings page or in the popup. It opens the block page in "settings" mode, where a partner code unlocks settings for the unlock duration. A passed day review also frees settings for the rest of the day.
+**Why it asks for access to all websites:** so you can add *any* site to block. Chrome requires that permission to redirect a site to the block page and to apply grayscale. FocusGate only acts on the sites in your list.
 
-## Development
+---
+
+## Honest limitations
+
+- **You can always get around it.** Disabling or removing the extension at `chrome://extensions`, using another browser or profile, or an Incognito window (unless you enable "Allow in Incognito") all work. No extension can prevent that. FocusGate is friction, not a prison.
+- **It's tamper-resistant, not tamper-proof.** Someone determined could edit its stored data with Chrome's developer tools. Partner codes are stored only as a slow, salted hash (PBKDF2, 2 million rounds), so recovering one takes hours of computing, longer than the code stays valid.
+- **Speech needs Chrome's on-device model** for your language. If it isn't offered for your language, the day review isn't available (partner codes still work).
+- **Timing:** blocks start and end on time. If your computer was asleep, things catch up within about a minute of waking.
+- **Streaks** count days with no data as clean days, including days you never opened the browser.
+
+---
+
+## For developers
+
+Plain JavaScript, HTML and CSS; no build step. Node is only needed for tests.
 
 ```sh
-npm install              # Playwright (tests only)
+npm install
 npx playwright install chromium
-npm test                 # unit tests (schedule math, gating, crypto, stats, LLM/email shapes, Apps Script)
-npm run test:e2e         # loads the unpacked extension into Chromium and drives it
-node tests/e2e/screens.mjs /tmp/shots   # screenshots of every page
+npm test               # unit tests: schedule maths, locking rules, hashing, stats, Apps Script
+npm run test:e2e       # loads the extension into a real Chromium and drives it end to end
 ```
-
-The E2E suite covers real DNR redirects (including subdomains and preserving the original URL), gating, alarm-driven relock, browser restart mid-unlock, redirecting open tabs, the voice review (with a fake `SpeechRecognition`), the Claude check (with a stubbed `fetch`), the full partner flow against a local fake backend, grayscale and the phrase input, heartbeat time tracking, and the dashboard. Schedule tests also pass under `TZ=America/New_York`, `Asia/Kolkata` and `Pacific/Auckland`.
-
-### Layout
 
 ```
 manifest.json
-src/background/sw.js      service worker: single writer of settings/state; recompute, rules, alarms, badge, messages
-src/lib/                  pure logic shared by worker and pages (schedule, status/gating, rules, crypto, stats, email, llm)
-src/content/core.js       grayscale + time-tracking heartbeat (registered dynamically for configured sites)
-src/popup/  src/options/  src/block/  src/review/  src/phrase/  src/stats/
+src/background/sw.js      service worker: the only writer of settings/state; rules, alarms, badge
+src/lib/                  shared logic (schedule, status/locking, rules, crypto, stats, email)
+src/content/core.js       grayscale, time tracking, and a backup redirect for cached/PWA pages
+src/popup/ options/ block/ review/ phrase/ stats/
 backend/apps-script/Code.gs
-tests/unit/  tests/e2e/
+tests/unit/ tests/e2e/
 ```
 
-## How it handles the edge cases
+Notes on how edge cases are handled:
 
-- **Browser restart mid-unlock.** Unlocks are stored as absolute timestamps. On startup and on every service-worker wake, the worker recomputes status, prunes expired unlocks and re-arms the alarm, so an unlock that expired while Chrome was closed is simply gone.
-- **Schedules crossing midnight.** A window whose end is at or before its start runs into the next day. Adjacent windows (Mon 22:00–24:00 + Tue 00:00–06:00) merge, so the countdown shows the real end time.
-- **Timezone changes and DST.** Schedules are wall-clock times in the *current* system timezone, recomputed from scratch each time. Besides an exact alarm at the next transition, a 1-minute `fg-tick` alarm recomputes, which catches timezone changes, clock changes and sleep/wake.
-- **Extension updated while a block is active.** Dynamic DNR rules and registered content scripts persist across updates. `onInstalled` fills in any new settings keys, recomputes, and re-injects the content script into already-open tabs; the orphaned old instance tears itself down.
-- **Tabs open when a block starts.** DNR only affects new requests, so the worker also redirects matching open tabs to the block page.
-- **Sites with a service worker (x.com and other PWAs) and Back/Forward.** `declarativeNetRequest` only sees real network requests. A navigation the site's own service worker answers from cache, or a page restored from the back/forward cache, never hits the network, so the redirect rule can't fire. Two backup layers catch these: the worker watches `tabs.onUpdated` and redirects any tab that lands on a blocked domain, and the content script (which runs at `document_start` on configured sites) redirects itself if its site is blocked.
-
-## Chrome limitations (and what FocusGate does about them)
-
-These are stated plainly rather than papered over.
-
-1. **You can always disable or remove the extension** at `chrome://extensions`. No extension can prevent this. Incognito windows aren't covered unless you enable "Allow in Incognito", and other browsers or profiles aren't covered at all.
-2. **Local state can be edited.** Anyone can open DevTools on an extension page and write to `chrome.storage.local`. Gating is enforced in the service worker (the UI can't bypass it), but it's friction, not security. The partner code hash uses **PBKDF2-SHA-256 with a random salt and 2M iterations** rather than a single SHA-256. With only 10⁶ possible codes, a plain hash can be brute-forced in under a second; at ~0.16 s per guess, the full search takes hours even across all CPU cores. The code expires in 30 minutes. For real tamper resistance the server would have to verify the code, which this design deliberately doesn't do.
-3. **`declarativeNetRequest` redirects to an extension page** require `host_permissions` for the blocked URLs, and you can add any site. That's why the extension asks for `<all_urls>`. The same permission lets it register the grayscale and time-tracking content script on your configured sites only.
-4. **Speech recognition is Google's cloud service.** `webkitSpeechRecognition` sends audio to Google and needs an internet connection. Chrome also ends "continuous" sessions after silence or about a minute; FocusGate restarts them automatically while you're recording. It runs in a full tab because popups close when they lose focus and can't reliably hold a microphone permission prompt. If you deny the mic, the page tells you how to re-allow it (address-bar mic icon or `chrome://settings/content/microphone`). Speaking time counts only while recognition results are arriving, so staying silent doesn't count.
-5. **Alarm timing.** Packed extensions have a 30-second minimum alarm period, and alarms can fire late after the machine sleeps. The 1-minute recompute tick keeps state correct within about a minute of any boundary.
-6. **The Claude API key is stored unencrypted** in `chrome.storage.local`, and calling the API from the browser requires the `anthropic-dangerous-direct-browser-access` header. Use a key with a spending limit.
-7. **Time tracking is approximate.** A tracked site's tab reports 15-second heartbeats while it is visible, focused, and Chrome's `idle` API says you've been active in the last 60 seconds. Background audio and video aren't counted.
-8. **Streaks count days with no data as clean,** including days the browser was never opened.
+- **Blocking layers.** Blocking uses `declarativeNetRequest` redirect rules. Those only see real network requests, so two backup layers cover pages a site's own service worker serves from cache (x.com does this) and Back/Forward restores: a `tabs.onUpdated` check in the service worker, and a self-redirect in the content script.
+- **Browser restarts.** Unlocks are stored as absolute times, and state is recomputed on every browser start and service-worker wake-up. An unlock that expired while Chrome was closed is simply gone.
+- **Timing accuracy.** Besides an exact alarm at the next change, a 1-minute alarm recomputes everything. That catches timezone changes, clock changes and sleep.
+- **Extension updates.** Updating keeps settings and re-injects the content script into open tabs.

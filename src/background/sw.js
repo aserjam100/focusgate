@@ -10,7 +10,6 @@ import { validateSchedule } from '../lib/schedule.js';
 import { dateKey, nextMidnight, parseHM, minutesSinceMidnight, MINUTE } from '../lib/time.js';
 import { randomCode, hashCode, verifyCode } from '../lib/crypto.js';
 import { sendPartnerEmail } from '../lib/email.js';
-import { judgeReview } from '../lib/llm.js';
 import { countWords, phraseMatches } from '../lib/text.js';
 import { addTime, recordAttempt, pruneStats } from '../lib/stats.js';
 
@@ -411,23 +410,8 @@ const handlers = {
       if (secs < r.minSeconds) failures.push(`spoke for ${secs}s, need ${r.minSeconds}s`);
       if (words < r.minWords) failures.push(`${words} words, need ${r.minWords}`);
 
-      let approved = failures.length === 0;
-      let reason = approved ? 'Met duration and word-count requirements.' : `Not enough: ${failures.join('; ')}.`;
-      let llmUsed = false;
-      let llmError = null;
-      if (approved && r.apiKey) {
-        llmUsed = true;
-        try {
-          const verdict = await judgeReview({ apiKey: r.apiKey, model: r.model, goals: settings.goals, transcript });
-          approved = verdict.approved;
-          reason = verdict.reason;
-        } catch (e) {
-          // Don't grant the unlock if the configured check can't run.
-          approved = false;
-          llmError = e.message;
-          reason = `Couldn't reach Claude to check your review: ${e.message}`;
-        }
-      }
+      const approved = failures.length === 0;
+      const reason = approved ? 'Met duration and word-count requirements.' : `Not enough: ${failures.join('; ')}.`;
 
       const entry = {
         ts: now,
@@ -438,8 +422,6 @@ const handlers = {
         recordingSeconds: Math.round(Number(recordingSeconds) || 0),
         approved,
         reason,
-        llmUsed,
-        llmError,
       };
       const { reviews = [] } = await chrome.storage.local.get('reviews');
       reviews.push(entry);
@@ -447,7 +429,7 @@ const handlers = {
 
       if (approved) state.dayUnlockUntil = nextMidnight(now);
       await bumpStats((s) => recordAttempt(s, 'review', { success: approved, inWindow: status.anyInWindow }, now));
-      return { approved, reason, words, speakingSeconds: secs, llmUsed, until: approved ? state.dayUnlockUntil : null, _why: 'review' };
+      return { approved, reason, words, speakingSeconds: secs, until: approved ? state.dayUnlockUntil : null, _why: 'review' };
     });
   },
 

@@ -3,7 +3,6 @@ import { weekdaySchedule, emptySchedule } from './schedule.js';
 export const SETTINGS_VERSION = 1;
 
 export const DEFAULT_PHRASE = 'I am not the master of my own mind, my mind controls me and I am weak';
-export const DEFAULT_MODEL = 'claude-opus-5';
 
 const DEFAULT_DOMAINS = ['instagram.com', 'youtube.com', 'linkedin.com', 'x.com', 'twitter.com', 'reddit.com'];
 
@@ -32,8 +31,6 @@ export function defaultSettings() {
       minSeconds: 90,
       minWords: 150,
       availableAfter: '17:00',
-      apiKey: '',
-      model: DEFAULT_MODEL,
     },
     partner: {
       name: '',
@@ -65,6 +62,9 @@ export function migrateSettings(stored) {
   if (!stored) return def;
   const s = { ...def, ...stored };
   s.review = { ...def.review, ...(stored.review || {}) };
+  // Removed feature: never keep an old API key around.
+  delete s.review.apiKey;
+  delete s.review.model;
   s.partner = { ...def.partner, ...(stored.partner || {}) };
   s.sites = (stored.sites || def.sites).map((site) => {
     const merged = { ...makeSite(site.domain), ...site };
