@@ -1,0 +1,19 @@
+main { max-width: 720px; margin: 0 auto; padding: 40px 16px 80px; }
+.goals { white-space: pre-wrap; margin: 0; }
+.meters { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 560px) { .meters { grid-template-columns: 1fr; } }
+.meter strong { font-variant-numeric: tabular-nums; }
+.bar { height: 6px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 6px; }
+.bar > div { height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+.bar > div.done { background: var(--ok); }
+.transcript {
+  min-height: 160px; max-height: 360px; overflow-y: auto;
+  padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg);
+  white-space: pre-wrap; line-height: 1.6;
+}
+.transcript:empty::before, .transcript.empty::before { content: 'Your words will appear here as you speak.'; color: var(--muted); }
+.rec { color: var(--danger); font-size: 12px; animation: pulse 1.2s infinite; }
+@keyframes pulse { 50% { opacity: .35; } }
+details.entry { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; }
+details.entry summary { cursor: pointer; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+details.entry p { white-space: pre-wrap; }

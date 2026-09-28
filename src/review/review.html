@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Day Review · FocusGate</title>
+  <link rel="stylesheet" href="../ui/common.css">
+  <link rel="stylesheet" href="review.css">
+</head>
+<body>
+  <main class="stack">
+    <header>
+      <p class="muted small"><a href="../options/options.html">FocusGate</a></p>
+      <h1>Day review</h1>
+      <p class="muted">Say out loud what you did today. Pass the requirements and everything unlocks until midnight.</p>
+    </header>
+
+    <section class="card stack">
+      <h2>Today's goals</h2>
+      <p id="goals" class="goals"></p>
+    </section>
+
+    <section class="card stack" id="recorder">
+      <div id="avail" class="msg"></div>
+      <div class="meters">
+        <div class="meter">
+          <div class="row"><span>Speaking time</span><span class="spacer"></span><strong id="secs">0s</strong><span class="muted" id="secs-req"></span></div>
+          <div class="bar"><div id="secs-bar"></div></div>
+        </div>
+        <div class="meter">
+          <div class="row"><span>Words</span><span class="spacer"></span><strong id="words">0</strong><span class="muted" id="words-req"></span></div>
+          <div class="bar"><div id="words-bar"></div></div>
+        </div>
+      </div>
+      <div class="row wrap">
+        <button id="start" class="primary">Start speaking</button>
+        <button id="stop" class="hidden">Pause</button>
+        <button id="reset">Start over</button>
+        <span class="spacer"></span>
+        <span id="rec" class="rec hidden">● recording</span>
+      </div>
+      <div id="mic-msg" class="msg"></div>
+      <div id="transcript" class="transcript" aria-live="polite"><span id="final"></span><span id="interim" class="muted"></span></div>
+      <div class="row">
+        <span id="llm-note" class="muted small"></span>
+        <span class="spacer"></span>
+        <button id="submit" class="primary" disabled>Submit review</button>
+      </div>
+      <div id="result" class="msg"></div>
+      <a id="continue" class="btn hidden" href="#">Continue</a>
+    </section>
+
+    <section class="stack">
+      <h2>History</h2>
+      <div id="history" class="stack"></div>
+    </section>
+  </main>
+  <script type="module" src="review.js"></script>
+</body>
+</html>
