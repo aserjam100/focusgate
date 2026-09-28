@@ -1,10 +1,11 @@
 // Partner-code hashing. A 6-digit code has only 10^6 possibilities, so a plain
 // SHA-256 hash can be brute-forced from DevTools in well under a second.
-// PBKDF2-HMAC-SHA256 with a random salt and a high iteration count makes each
-// guess cost ~0.2 s, turning an offline brute force into many hours of work
-// (longer than the code's 30-minute lifetime).
+// PBKDF2-HMAC-SHA256 with a random salt and 2M iterations costs ~0.2 s per
+// guess on a modern laptop core, so an exhaustive search takes hours even
+// across all cores, longer than the code's default 30-minute lifetime.
+// It raises the bar; it is not a guarantee (see README "Limitations").
 
-export const PBKDF2_ITERATIONS = 400_000;
+export const PBKDF2_ITERATIONS = 2_000_000;
 
 function toHex(buf) {
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
