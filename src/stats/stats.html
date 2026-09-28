@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FocusGate Stats</title>
+  <link rel="stylesheet" href="../ui/common.css">
+  <link rel="stylesheet" href="stats.css">
+</head>
+<body>
+  <main class="stack viz-root">
+    <header class="row wrap">
+      <h1>Stats</h1>
+      <span class="spacer"></span>
+      <div class="seg" role="radiogroup" aria-label="Date range">
+        <button data-days="7" aria-pressed="true">7 days</button>
+        <button data-days="30" aria-pressed="false">30 days</button>
+      </div>
+      <a href="../options/options.html">Settings</a>
+    </header>
+    <p class="muted small">All data stays in this browser. Time counts only while a tracked site's tab is focused and you're not idle.</p>
+
+    <section class="tiles">
+      <div class="tile"><div class="tile-label">Current streak</div><div class="tile-value" id="streak"></div><div class="tile-sub muted" id="streak-sub"></div></div>
+      <div class="tile"><div class="tile-label">Longest streak</div><div class="tile-value" id="longest"></div><div class="tile-sub muted">days with no unlocks in a block window</div></div>
+      <div class="tile"><div class="tile-label">Tracked time today</div><div class="tile-value" id="today"></div><div class="tile-sub muted" id="today-sub"></div></div>
+      <div class="tile"><div class="tile-label">Unlocks</div><div class="tile-value" id="unlocks"></div><div class="tile-sub muted" id="unlocks-sub"></div></div>
+    </section>
+
+    <section class="card stack">
+      <h2 id="bars-title">Time per site</h2>
+      <div id="bars" class="bars"></div>
+    </section>
+
+    <section class="card stack">
+      <h2>Time per site per day</h2>
+      <div class="table-wrap"><table id="heat" class="heat"></table></div>
+      <div class="legend small muted" id="heat-legend"></div>
+    </section>
+
+    <section class="card stack">
+      <h2>Unlock attempts by method</h2>
+      <table id="methods" class="plain"></table>
+    </section>
+  </main>
+  <div id="tip" class="tip" role="tooltip" hidden></div>
+  <script type="module" src="stats.js"></script>
+</body>
+</html>

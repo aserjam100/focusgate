@@ -50,7 +50,7 @@
   const heartbeat = setInterval(() => {
     if (!alive()) return teardown();
     if (document.visibilityState !== 'visible' || !document.hasFocus()) return;
-    chrome.runtime.sendMessage({ type: 'heartbeat', host, seconds: HEARTBEAT_SECONDS }).catch(() => {});
+    chrome.runtime.sendMessage({ type: 'heartbeat', seconds: HEARTBEAT_SECONDS }).catch(() => {});
   }, HEARTBEAT_SECONDS * 1000);
 
   function setRuntime(rt) {

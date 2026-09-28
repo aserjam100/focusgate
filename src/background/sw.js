@@ -474,9 +474,18 @@ const handlers = {
 
   // ---- Stats ---------------------------------------------------------------
 
-  heartbeat({ host, seconds }, sender) {
+  heartbeat({ seconds }, sender) {
     return locked(async () => {
-      if (!sender.tab) return {};
+      // Trust the frame URL Chrome reports, not a host field in the message:
+      // only content scripts on real web pages count.
+      let host;
+      try {
+        const u = new URL(sender.url || '');
+        if (!sender.tab || !/^https?:$/.test(u.protocol)) return {};
+        host = u.hostname;
+      } catch {
+        return {};
+      }
       const idle = await chrome.idle.queryState(60);
       if (idle !== 'active') return {};
       const { settings } = await loadAll();
