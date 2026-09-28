@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Turn Off Grayscale · FocusGate</title>
+  <link rel="stylesheet" href="../ui/common.css">
+  <style>
+    main { max-width: 640px; margin: 0 auto; padding: 48px 16px; }
+    .phrase { font-size: 18px; line-height: 1.5; padding: 14px 16px; border-left: 3px solid var(--border); margin: 0;
+      user-select: none; -webkit-user-select: none; }
+    #typed { font-size: 16px; min-height: 90px; }
+  </style>
+</head>
+<body>
+  <main class="stack">
+    <p class="muted small">FocusGate</p>
+    <h1 id="title">Turn off grayscale</h1>
+    <p class="muted" id="desc"></p>
+    <blockquote class="phrase" id="phrase"></blockquote>
+    <label class="field"><span>Type it exactly (case doesn't matter). Pasting is disabled.</span>
+      <textarea id="typed" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-gramm="false"></textarea>
+    </label>
+    <div class="row">
+      <span id="progress" class="muted small"></span>
+      <span class="spacer"></span>
+      <button id="submit" class="primary">Turn off grayscale</button>
+    </div>
+    <div id="msg" class="msg"></div>
+  </main>
+  <script type="module" src="phrase.js"></script>
+</body>
+</html>
