@@ -78,18 +78,16 @@ test('per-site custom schedule overrides global', () => {
   assert.equal(computeStatus(settings, state, MON_20).sites[reddit.id].blocked, true);
 });
 
-test('partial mode and grayscale flags', () => {
+test('no-block mode with grayscale', () => {
   const { settings, state, reddit } = setup();
-  reddit.mode = 'partial';
+  reddit.mode = 'none';
   reddit.grayscale = true;
   let st = computeStatus(settings, state, MON_10).sites[reddit.id];
   assert.equal(st.blocked, false);
-  assert.equal(st.partial, true);
   assert.equal(st.grayscale, true);
   // Grayscale persists through an unlock; only the phrase turns it off.
   state.unlocks[reddit.id] = MON_10 + 60_000;
   st = computeStatus(settings, state, MON_10).sites[reddit.id];
-  assert.equal(st.partial, false);
   assert.equal(st.grayscale, true);
   state.grayscaleOff[reddit.id] = MON_10 + 60_000;
   assert.equal(computeStatus(settings, state, MON_10).sites[reddit.id].grayscale, false);

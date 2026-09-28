@@ -36,7 +36,6 @@ export function computeStatus(settings, state, now) {
       unlockedUntil: dayUnlocked ? state.dayUnlockUntil : tempUntil || null,
       unlockKind: dayUnlocked ? 'day' : tempUntil ? 'temp' : null,
       blocked: inWindow && !unlocked && site.mode === 'full',
-      partial: inWindow && !unlocked && site.mode === 'partial',
       // Grayscale survives unlocks: it has its own (phrase) unlock.
       grayscale: inWindow && site.grayscale && !grayOffUntil,
     };

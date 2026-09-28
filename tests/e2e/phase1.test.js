@@ -75,7 +75,7 @@ test('during a window: unchecking, deleting, pausing and editing settings are re
   const id = await siteId('reddit.com');
   for (const [type, payload] of [
     ['updateSite', { id, patch: { enabled: false } }],
-    ['updateSite', { id, patch: { mode: 'partial' } }],
+    ['updateSite', { id, patch: { mode: 'none' } }],
     ['updateSite', { id, patch: { scheduleMode: 'custom' } }],
     ['removeSite', { id }],
     ['setEnabled', { enabled: false }],

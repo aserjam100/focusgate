@@ -35,7 +35,6 @@ function fillForm(settings) {
   for (const el of form.elements) {
     if (!el.name) continue;
     let v = getPath(settings, el.name);
-    if (el.name === 'redditWhitelist') v = (v || []).join('\n');
     el.value = v ?? '';
   }
   globalSchedule = structuredClone(settings.globalSchedule);
@@ -52,7 +51,6 @@ function readForm() {
     if (!el.name) continue;
     let v = el.value;
     if (el.type === 'number') v = Number(v);
-    if (el.name === 'redditWhitelist') v = v.split(/[\s,]+/).filter(Boolean);
     const [a, b] = el.name.split('.');
     if (b) patch[a][b] = v;
     else patch[a] = v;
@@ -102,7 +100,7 @@ function renderSites() {
     const sw = el('label', { className: 'switch', title: 'Enabled' }, enabled, el('span', { className: 'slider' }));
 
     const mode = el('select');
-    for (const [v, label] of [['full', 'Full block'], ['partial', 'Partial'], ['none', 'None']]) {
+    for (const [v, label] of [['full', 'Full block'], ['none', 'No block']]) {
       mode.append(el('option', { value: v, textContent: label, selected: site.mode === v }));
     }
     mode.onchange = () => act('updateSite', { id: site.id, patch: { mode: mode.value } });
@@ -117,7 +115,7 @@ function renderSites() {
     );
     schedMode.onchange = () => act('updateSite', { id: site.id, patch: { scheduleMode: schedMode.value } });
 
-    const state = st.blocked ? 'blocked' : st.partial ? 'partial' : st.inWindow && st.unlockedUntil ? 'unlocked' : st.inWindow ? 'in window' : 'free';
+    const state = st.blocked ? 'blocked' : st.inWindow && st.unlockedUntil ? 'unlocked' : st.inWindow ? 'in window' : 'free';
     const pill = el('span', { className: `pill ${state.split(' ')[0]}`, textContent: state });
 
     const rm = el('button', { type: 'button', className: 'danger', textContent: 'Remove' });

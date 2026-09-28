@@ -12,7 +12,7 @@ export function makeSite(domain, overrides = {}) {
     id: 's_' + Math.random().toString(36).slice(2, 10),
     domain,
     enabled: true,
-    mode: 'full', // 'full' | 'partial' | 'none' (none = grayscale/tracking only)
+    mode: 'full', // 'full' | 'none' (none = grayscale/tracking only)
     grayscale: false,
     scheduleMode: 'global', // 'global' | 'custom'
     schedule: emptySchedule(),
@@ -45,8 +45,6 @@ export function defaultSettings() {
       maxPerDay: 3,
     },
     grayscalePhrase: DEFAULT_PHRASE,
-    scrollLimitScreens: 5,
-    redditWhitelist: [],
   };
 }
 
@@ -68,7 +66,11 @@ export function migrateSettings(stored) {
   const s = { ...def, ...stored };
   s.review = { ...def.review, ...(stored.review || {}) };
   s.partner = { ...def.partner, ...(stored.partner || {}) };
-  s.sites = (stored.sites || def.sites).map((site) => ({ ...makeSite(site.domain), ...site }));
+  s.sites = (stored.sites || def.sites).map((site) => {
+    const merged = { ...makeSite(site.domain), ...site };
+    if (!['full', 'none'].includes(merged.mode)) merged.mode = 'full';
+    return merged;
+  });
   s.version = SETTINGS_VERSION;
   return s;
 }

@@ -17,14 +17,7 @@ import { addTime, recordAttempt, pruneStats } from '../lib/stats.js';
 const ALARM_TRANSITION = 'fg-transition';
 const ALARM_TICK = 'fg-tick';
 const CONTENT_SCRIPT_ID = 'fg-sites';
-const CONTENT_FILES = [
-  'src/content/sites/youtube.js',
-  'src/content/sites/linkedin.js',
-  'src/content/sites/reddit.js',
-  'src/content/sites/x.js',
-  'src/content/sites/instagram.js',
-  'src/content/core.js',
-];
+const CONTENT_FILES = ['src/content/core.js'];
 const MAX_CODE_ATTEMPTS = 5;
 const SETUP_GRACE_MINUTES = 30;
 const EXT_ORIGIN = chrome.runtime.getURL('').replace(/\/$/, '');
@@ -69,18 +62,12 @@ async function recompute(reason = '') {
     byDomain[s.domain] = {
       siteId: s.id,
       blocked: s.blocked,
-      partial: s.partial,
       grayscale: s.grayscale,
       inWindow: s.inWindow,
       windowEnd: s.windowEnd,
     };
   }
-  const runtime = {
-    status,
-    byDomain,
-    scrollLimitScreens: settings.scrollLimitScreens,
-    redditWhitelist: settings.redditWhitelist,
-  };
+  const runtime = { status, byDomain };
   // Only write when something changed: pages and content scripts listen for
   // storage changes, and a no-op write would make them refresh in a loop.
   const writes = {};
@@ -248,8 +235,6 @@ const GLOBAL_FIELDS = {
   review: 'object',
   partner: 'object',
   grayscalePhrase: 'string',
-  scrollLimitScreens: 'number',
-  redditWhitelist: 'object',
 };
 
 /** Is this site change strictly tightening (allowed even when locked)? */
@@ -308,7 +293,7 @@ const handlers = {
       const site = findSite(settings, id);
       const clean = {};
       for (const k of SITE_FIELDS) if (k in patch) clean[k] = patch[k];
-      if (clean.mode && !['full', 'partial', 'none'].includes(clean.mode)) throw new GateError('Bad mode');
+      if (clean.mode && !['full', 'none'].includes(clean.mode)) throw new GateError('Bad mode');
       if (clean.schedule) {
         const errs = validateSchedule(clean.schedule);
         if (errs.length) throw new GateError(errs.join('; '));
@@ -342,13 +327,11 @@ const handlers = {
       const errs = validateSchedule(settings.globalSchedule);
       if (errs.length) throw new GateError(errs.join('; '));
       settings.unlockMinutes = clampNum(settings.unlockMinutes, 1, 240);
-      settings.scrollLimitScreens = clampNum(settings.scrollLimitScreens, 1, 100);
       settings.review.minSeconds = clampNum(settings.review.minSeconds, 0, 3600);
       settings.review.minWords = clampNum(settings.review.minWords, 0, 10000);
       settings.partner.codeExpiryMinutes = clampNum(settings.partner.codeExpiryMinutes, 1, 1440);
       settings.partner.maxPerDay = clampNum(settings.partner.maxPerDay, 0, 20);
       if (parseHM(settings.review.availableAfter) == null) throw new GateError('Bad "available after" time');
-      settings.redditWhitelist = [...new Set(settings.redditWhitelist.map((s) => String(s).trim().toLowerCase().replace(/^\/?r\//, '')).filter(Boolean))];
       if (!settings.grayscalePhrase.trim()) throw new GateError('Grayscale phrase cannot be empty');
       return { _why: 'saveSettings' };
     });

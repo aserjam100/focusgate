@@ -40,9 +40,6 @@ function sitePill(st, site) {
   } else if (st.blocked) {
     pill.classList.add('blocked');
     pill.textContent = 'blocked';
-  } else if (st.partial) {
-    pill.classList.add('partial');
-    pill.textContent = 'partial';
   } else if (st.inWindow && st.unlockedUntil) {
     pill.classList.add('unlocked');
     pill.textContent = `unlocked ${formatDuration(st.unlockedUntil - Date.now())}`;

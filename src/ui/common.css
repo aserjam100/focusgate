@@ -90,7 +90,6 @@ label.field > span { display: block; font-weight: 500; margin-bottom: 4px; }
 }
 .pill.blocked { color: var(--danger); border-color: currentColor; }
 .pill.unlocked { color: var(--warn); border-color: currentColor; }
-.pill.partial { color: var(--accent); border-color: currentColor; }
 .pill.free { color: var(--ok); border-color: currentColor; }
 .msg { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); }
 .msg.error { color: var(--danger); border-color: currentColor; }
